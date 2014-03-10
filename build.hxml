@@ -1,19 +1,23 @@
 
 -cp src
 -cp ../../lib/hxmpp/src
--main g24.Chat
--js web/g24chat.js
--resource res/login.html@login
--resource res/muc.html@muc
-#-D jabber_debug
-#-D xmpp_debug
-#-debug
---no-traces
--dce full
 
--cmd mkdir -p web 
+g24.Chat
+-js web/g24chat.js
+
+-resource res/tpl/login.html@login
+-resource res/tpl/muc.html@muc
+
+-D jabber_debug
+-D xmpp_debug
+-debug
+#--no-traces
+#-dce no
+
+-cmd mkdir -p web/fonts
 -cmd rsync res/index.html web
 -cmd lessc res/g24chat.less web/g24chat.css
 -cmd rsync res/om.css web
 -cmd rsync res/fonts/Roboto-Light.ttf web/fonts
 -cmd rsync res/fonts/Roboto-Regular.ttf web/fonts
+-cmd rsync -r res/img web

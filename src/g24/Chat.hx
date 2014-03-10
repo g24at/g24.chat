@@ -6,7 +6,18 @@ import js.Browser.window;
 import js.html.Element;
 import jabber.client.Stream;
 import jabber.client.MUChat;
+import haxe.Template;
+import haxe.Resource;
+import g24.chat.ui.ChatMessageView;
 
+typedef ChatConfig = {
+	var host : String;
+	var muc_host : String;
+	var muc_room : String;
+}
+
+@:keep
+@:expose
 class Chat {
 
 	static inline var HOST = 'jabber.spektral.at';
@@ -17,18 +28,17 @@ class Chat {
 	static var nick : String;
 	static var stream : Stream;
 	static var muc : MUChat;
-	static var e : Element;
+	static var container : Element;
 
 	static function join( nick : String ) {
 		Chat.nick = nick;
-		if( stream == null )
-			connect();
-		else
+		if( stream == null ) connect() else {
 			joinMUChat();
+		}
 	}
 
 	static function connect() {
-		document.body.innerText = 'Connecting ...';
+		container.innerText = 'Connecting ...';
 		var cnx = new jabber.BOSHConnection( HOST, HOST+'/http' );
 		stream = new Stream( cnx );
 		stream.onOpen = function(){
@@ -68,11 +78,12 @@ class Chat {
 		muc.onLeave = function(){ trace('left room'); }
 		muc.onError = function(e){
 			trace(e);
-			document.body.innerHTML = '<div class="error">$e</div>';
+			container.innerHTML = '<div class="error">$e</div>';
 		}
-		muc.join( nick );
 
 		printTemplate( 'muc' );
+		
+		muc.join( nick );
 	}
 
 	static function handleMUCJoin() {
@@ -80,7 +91,7 @@ class Chat {
 		storage.setItem( 'muc_nick', Chat.nick );
 
 		getElementById( 'chat_speak' ).onclick = function(_){ submitMessage(); }
-		document.body.onkeydown = function(e){
+		container.onkeydown = function(e){
 			switch e.keyCode {
 			case 13: submitMessage();
 			}
@@ -93,9 +104,9 @@ class Chat {
 
 	static function handleMUCPresence( o : jabber.client.MUChatOccupant ) {
 		
-		//trace("pppppppppp "+o);
 		//trace(o.nick+":"+Chat.nick);
 		
+		/*
 		if( o == null || o.nick == Chat.nick )
 			return;
 
@@ -109,15 +120,13 @@ class Chat {
 		e.classList.add( 'chat_user' );
 		e.innerText = o.nick;
 		getElementById('chat_users').appendChild( e );
+		*/
 	}
 
 	static function handleMUCMessage( o : jabber.client.MUChatOccupant, m : xmpp.Message ) {
 		
 		if( o == null )
 			return;
-
-		var e = document.createDivElement();
-		e.classList.add( 'message' );
 
 		var time : String = null;
 		var delay = xmpp.Delayed.fromPacket( m );
@@ -127,22 +136,10 @@ class Chat {
  		} else {
  			time = delay.stamp;
 		}
-		var e_date = document.createSpanElement();
-		e_date.classList.add( 'date' );
-		e_date.innerText = time+' / ';
-		e.appendChild( e_date );
 
-		var e_user = document.createSpanElement();
-		e_user.classList.add( 'user' );
-		e_user.innerText = o.nick+" / ";
-		e.appendChild( e_user );
+		var view = new ChatMessageView( time, o.nick, m.body );
 
-		var e_body = document.createSpanElement();
-		e_body.classList.add( 'body' );
-		e_body.innerText = m.body;
-		e.appendChild( e_body );
-		
-		getElementById( 'chat_output' ).appendChild( e );
+		getElementById( 'chat_output' ).appendChild( view.e );
 	}
 
 	static function submitMessage() {
@@ -156,8 +153,8 @@ class Chat {
 
 	static function printTemplate( id : String, ?ctx : Dynamic ) {
 		if( ctx == null ) ctx = {};
-		var html = new haxe.Template( haxe.Resource.getString( id ) ).execute( ctx );
-		document.body.innerHTML = html;
+		var html = new Template( Resource.getString( id ) ).execute( ctx );
+		container.innerHTML = html;
 	}
 
 	static function onUnload(e) {
@@ -165,15 +162,20 @@ class Chat {
 		e.stopPropagation();
 		//untyped alert('onunload');
 		disconnect();
-		return false;
+		//return false;
+		return true;
 	}
 
 	static inline function getElementById( id ) : Element return document.getElementById(id);
 
-	static function main() {
+	@:keep
+	static function init( config : ChatConfig ) {
 
-		window.onload = function(_){
+			trace("CHAT "+config);
 
+			container = document.getElementById('chat');
+			container.innerHTML = '';
+		
 			printTemplate( 'login' );
 			
 			var e_nickname = getElementById( 'chat_nickname' );
@@ -190,9 +192,9 @@ class Chat {
 					return;
 				join( nick );
 			};
-		}
-		window.onbeforeunload = onUnload;
-		window.onunload = onUnload;
+		//}
+		//window.onbeforeunload = onUnload;
+		//window.onunload = onUnload;
 	}
 
 }
