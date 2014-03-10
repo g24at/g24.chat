@@ -1,4 +1,4 @@
-g24.chat
-========
 
-g24 xmpp chat integration
+G24.CHAT
+========
+G24 jabber/xmpp (chat) integration

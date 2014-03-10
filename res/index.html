@@ -5,4 +5,17 @@
 	<link rel="stylesheet" type="text/css" href="om.css">
 	<link rel="stylesheet" type="text/css" href="g24chat.css">
 	<script type="text/javascript" src="g24chat.js"></script>
-</head><body>G24 Chat</body></html>
+	<script type="text/javascript">
+		window.onload = function(){
+			g24.Chat.init({ 
+				"host":"jabber.spektral.at",
+				"muc_host":"conference.jabber.spektral.at",
+				"muc_room":"g24",
+			});
+		}
+	</script>
+</head>
+<body>
+	<div id="chat">G24 Chat</div>
+</body>
+</html>
